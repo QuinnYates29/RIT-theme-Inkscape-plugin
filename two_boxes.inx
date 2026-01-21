@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+  <name>Two Boxes with Connector</name>
+  <id>org.example.two_boxes</id>
+
+  <param name="top_text" type="string" gui-text="Top box text:">
+    Top Box
+  </param>
+
+  <effect>
+    <object-type>all</object-type>
+    <effects-menu>
+      <submenu name="Extensions"/>
+    </effects-menu>
+  </effect>
+
+  <script>
+  <command reldir="extensions" interpreter="python">two_boxes.py</command>
+  </script>
+
+</inkscape-extension>
