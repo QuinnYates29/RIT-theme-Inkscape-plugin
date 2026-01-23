@@ -3,17 +3,22 @@
   <name>Generate Box</name>
   <id>org.inkscape.square.effect</id>
 
-  <param name="width" type="string" gui-text="Box width">
-    <default>20mm</default>
-  </param>
+  <param name="title" type="string" gui-text="Main title (top of diagram)">
+  <default>Schematic</default>
+</param>
 
-  <param name="height" type="string" gui-text="Box Height">
-    <default>20mm</default>
-  </param>
+<param name="box_height" type="string" gui-text="Default box height">
+  <default>200mm</default>
+</param>
 
-  <param name="top_text" type="string" gui-text="Text inside square">
-    <default>RIT</default>
-  </param>
+<param name="box_width" type="string" gui-text="Default box width">
+  <default>200mm</default>
+</param>
+
+<param
+name="tree_data" type="string" gui-text="Diagram structure"
+multiline="true" gui-description="Use indentation (2 spaces per level) to define nested boxes"
+/>
 
   <!--
   <param name="param_str" type="string" gui-text="Your name:"></param>
