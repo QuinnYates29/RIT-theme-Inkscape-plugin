@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
-  <name>Generate Box</name>
+  <name>Generate Box Tree</name>
   <id>org.inkscape.square.effect</id>
 
   <param name="title" type="string" gui-text="Main title (top of diagram)">
@@ -51,6 +51,6 @@ This testing help text can be changed to help users of the extension.
     </effects-menu>
   </effect>
   <script>
-    <command reldir="extensions" interpreter="python">my_square_extension.py</command>
+    <command reldir="extensions" interpreter="python">parent_box_generator.py</command>
   </script>
 </inkscape-extension>
