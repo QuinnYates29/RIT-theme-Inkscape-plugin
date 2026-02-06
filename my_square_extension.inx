@@ -16,13 +16,13 @@
 </param>
 
 <param
-    name="tree_data"
-    type="string"
-    gui-text="Diagram structure"
-    gui-multiline="true"
-    rows="10"
-    gui-description="Use indentation (3 spaces per level) to define nested boxes"
+  name="tree_data"
+  type="text"
+  gui-text="Diagram structure"
+  multiline="true"
+  gui-description="Use --- for each indent level"
 />
+
 
   <!--
   <param name="param_str" type="string" gui-text="Your name:"></param>

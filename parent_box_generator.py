@@ -125,7 +125,10 @@ class ParentBox(inkex.EffectExtension):
             node = TreeNode(value)
 
             # Attach node
-            parent = stack[depth]
+            parent = stack.get(depth)
+            if parent is None:
+                parent = stack[max(stack.keys())]  # fall back to last valid depth
+
             parent.add_child(node)
             # Store for children
             stack[depth + 1] = node
@@ -152,7 +155,11 @@ class ParentBox(inkex.EffectExtension):
         else:
             parent_group.add(group)
         rect = self.create_box(x, y, width, height, fill=BACKGROUND_COLOR)
-        title = create_text(x + width/2, y + 12, node.name)
+        title = create_text(
+            x + width / 2,
+            y + TITLE_PADDING,
+            node.name
+        )
         group.add(rect)
         group.add(title)
 
@@ -163,8 +170,8 @@ class ParentBox(inkex.EffectExtension):
         tot_inner_width = width - 2 * BOX_PADDING
         cbox_width = (tot_inner_width - (n - 1) * SIBLING_GAP) / n
         cbox_x = x + BOX_PADDING
-        inner_y = y + BOX_PADDING
-        ch = height - 2 * BOX_PADDING
+        inner_y = y + TITLE_PADDING + BOX_PADDING
+        ch = height - TITLE_PADDING - 2 * BOX_PADDING
 
         for child in node.children:
             self.render_node(child, cbox_x, inner_y, cbox_width, ch, group)
@@ -175,22 +182,19 @@ class ParentBox(inkex.EffectExtension):
         layer = self.svg.get_current_layer()
 
         # Width and height of the entire "page"
-        root = self.svg.getroot()
+        svg = self.svg
 
-        if self.options.width:
-            width = root.attrib.get('width')
-        else:
-            width = self.svg.get_current_layer().root.attrib.get('width')
-        if self.options.height:
-            height = root.attrib.get('height')
-        else:
-            height = self.svg.get_current_layer().root.attrib.get('height')
+        width = self.options.width or svg.get('width')
+        height = self.options.height or svg.get('height')
 
-        x = BOX_EDGE_MARGIN
-        y = BOX_EDGE_MARGIN
+        width = svg.unittouu(width)
+        height = svg.unittouu(height)
+
+        x = 0
+        y = 0
 
         # Generate tree (Main box is not in tree and children = [] if empty)
-        tree_data = self.options.tree_data.strip()
+        tree_data = self.options.tree_data.strip("\n")
         tree = self.generate_tree(tree_data, self.options.title)
         self.render_node(tree, x, y, width, height)
 
