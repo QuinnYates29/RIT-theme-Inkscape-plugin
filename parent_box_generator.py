@@ -20,11 +20,9 @@
 """
 Description of this extension
 """
-from idlelib.tree import TreeNode
 
 import inkex
 from inkex import Rectangle
-from lxml import etree
 
 # COLORS
 BACKGROUND_COLOR = "#dcdcdc"
@@ -100,11 +98,9 @@ class ParentBox(inkex.EffectExtension):
 
     def add_arguments(self, pars):
         pars.add_argument("--title", type=str, help="Title for the top of the box", default="Schematic")
-        pars.add_argument("--height", type=str, help="Height of the box - Leave empty for Fit to Page",
-                          default=self.svg.get_current_layer().root.attrib.get('height'))
-        pars.add_argument("--width", type=str, help="Width of the box - Leave empty for Fit to Page",
-                          default=self.svg.get_current_layer().root.attrib.get('width'))
-        pars.add_argument("--str_data", type=str, default="")
+        pars.add_argument("--height", type=str, help="Height of the box - Leave empty for Fit to Page")
+        pars.add_argument("--width", type=str, help="Width of the box - Leave empty for Fit to Page")
+        pars.add_argument("--tree_data", type=str, default="")
 
     # Parse data from the input string and generate a tree structure
     # Format should be:
@@ -155,7 +151,6 @@ class ParentBox(inkex.EffectExtension):
             self.svg.get_current_layer().add(group)
         else:
             parent_group.add(group)
-        parent_group.add(group)
         rect = self.create_box(x, y, width, height, fill=BACKGROUND_COLOR)
         title = create_text(x + width/2, y + 12, node.name)
         group.add(rect)
@@ -181,13 +176,18 @@ class ParentBox(inkex.EffectExtension):
 
         # Width and height of the entire "page"
         root = self.svg.getroot()
-        width = root.attrib.get('width')
-        height = root.attrib.get('height')
 
-        x = 0
-        y = 0
-        width = self.svg.unittouu(self.options.width)
-        height = self.svg.unittouu(self.options.height)
+        if self.options.width:
+            width = root.attrib.get('width')
+        else:
+            width = self.svg.get_current_layer().root.attrib.get('width')
+        if self.options.height:
+            height = root.attrib.get('height')
+        else:
+            height = self.svg.get_current_layer().root.attrib.get('height')
+
+        x = BOX_EDGE_MARGIN
+        y = BOX_EDGE_MARGIN
 
         # Generate tree (Main box is not in tree and children = [] if empty)
         tree_data = self.options.tree_data.strip()
