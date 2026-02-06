@@ -38,6 +38,30 @@ RIT_BLACK  = "#000000"
 RIT_GRAY   = "#808080"
 RIT_WHITE  = "#FFFFFF"
 
+# === Diagram rules ===
+BOX_GRID = 20
+LINE_GRID = 5
+
+BOX_EDGE_MARGIN = 20
+LINE_EDGE_MARGIN = 10
+
+STROKE_WIDTH = "1px"
+
+ARROW_PULLBACK = 2
+MIN_ARROW_SEGMENT = 18
+
+ARROW_START = "Arrow1Mstart"
+ARROW_END = "Arrow1Mend"
+
+# === Padding & spacing ===
+UNIT = BOX_GRID  # 20px
+
+OUTER_PADDING = UNIT            # 20px – page to main box
+BOX_PADDING = UNIT // 2         # 10px – inside a box
+TITLE_PADDING = UNIT // 2       # 10px – top text offset
+SIBLING_GAP = UNIT // 2         # 10px – space between child boxes
+LEVEL_GAP = UNIT                # 20px – vertical separation (if used)
+
 class TreeNode:
     def __init__(self, name, depth=0, meta=None):
         self.name = name        # string
@@ -62,13 +86,17 @@ def create_text(x, y, content, font_size="12px") -> TextElement:
     t.text = content
     return t
 
+# Helper to enforce snapping
+def snap(value, grid):
+    return round(value / grid) * grid
+
 
 class ParentBox(inkex.EffectExtension):
     def box_style(self, fill):
         return {
             "fill": fill,
             "stroke": RIT_BLACK,
-            "stroke-width": str(self.svg.unittouu("1mm"))
+            "stroke-width": STROKE_WIDTH
         }
 
     def add_arguments(self, pars):
@@ -79,50 +107,74 @@ class ParentBox(inkex.EffectExtension):
                           default=self.svg.get_current_layer().root.attrib.get('width'))
         pars.add_argument("--str_data", type=str, default="")
 
-    def generate_tree(self, title:str) -> TreeNode:
-        data = self.options.tree_data.strip()
-        head = TreeNode(title)
-        if not data:
-            return head
+    # Parse data from the input string and generate a tree structure
+    # Format should be:
+    # Parent
+    # ---Child
+    # ------ChildofChild
+    #, Where - is a space
+    def generate_tree(self, input, root_title) -> TreeNode:
+        root = TreeNode(root_title)
+        stack = {0: root}
+        for raw_line in input.splitlines():
+            if not raw_line.strip():
+                continue
+            dash_count = 0
+            for char in raw_line:
+                if char == '-':
+                    dash_count += 1
+                else:
+                    break
+            depth = dash_count // 3
+            value = raw_line[dash_count:].strip()
+            node = TreeNode(value)
 
-        node = head
-        for line in data.splitlines():
-            node.add_child(TreeNode(line))
-            head.depth += 1
+            # Attach node
+            parent = stack[depth]
+            parent.add_child(node)
+            # Store for children
+            stack[depth + 1] = node
+        return root
 
 
     def create_box(self, x, y, width, height, fill = BACKGROUND_COLOR) -> Rectangle:
         rect = Rectangle(
-            x=str(x),
-            y=str(y),
-            width=str(width),
-            height=str(height),
+            x=str(snap(x, BOX_GRID)),
+            y=str(snap(y, BOX_GRID)),
+            width=str(snap(width, BOX_GRID)),
+            height=str(snap(height, BOX_GRID)),
             rx=str(self.svg.unittouu("3mm")),
             ry=str(self.svg.unittouu("3mm"))
         )
         rect.style = self.box_style(fill)
         return rect
 
-    # Draws initial main box, and then starts recursive generation if necessary
-    def draw_structure(self, tree:TreeNode, x, y, width, height, title="Schematic"):
-        root_group = inkex.Group()
-        rect = self.create_box(x, y, width, height, fill=BACKGROUND_COLOR)
-        title = create_text(x + width/2, y, title)
-        root_group.add(rect)
-        root_group.add(title)
 
-        if len(num_children := tree.children) > 0:
-            child_x = x + 10
-            child_y = y + 10
-            child_width = ((width-20) / (len(num_children)) - 10)
-            child_height = height - 20
-            for child in tree.children:
-                render_node
-
-
-    def render_node(self, node, x, y, width, height, parent_group, title):
+    def render_node(self, node, x, y, width, height, parent_group=None):
         group = inkex.Group()
+        if parent_group is None:
+            self.svg.get_current_layer().add(group)
+        else:
+            parent_group.add(group)
         parent_group.add(group)
+        rect = self.create_box(x, y, width, height, fill=BACKGROUND_COLOR)
+        title = create_text(x + width/2, y + 12, node.name)
+        group.add(rect)
+        group.add(title)
+
+        if not node.children:
+            return
+
+        n = len(node.children)
+        tot_inner_width = width - 2 * BOX_PADDING
+        cbox_width = (tot_inner_width - (n - 1) * SIBLING_GAP) / n
+        cbox_x = x + BOX_PADDING
+        inner_y = y + BOX_PADDING
+        ch = height - 2 * BOX_PADDING
+
+        for child in node.children:
+            self.render_node(child, cbox_x, inner_y, cbox_width, ch, group)
+            cbox_x += cbox_width + SIBLING_GAP
 
 
     def effect(self):
@@ -139,10 +191,9 @@ class ParentBox(inkex.EffectExtension):
         height = self.svg.unittouu(self.options.height)
 
         # Generate tree (Main box is not in tree and children = [] if empty)
-        tree = self.generate_tree(self.options.str_data)
-
-
-
+        tree_data = self.options.tree_data.strip()
+        tree = self.generate_tree(tree_data, self.options.title)
+        self.render_node(tree, x, y, width, height)
 
 if __name__ == '__main__':
     ParentBox().run()
