@@ -25,7 +25,6 @@ from idlelib.tree import TreeNode
 import inkex
 from inkex import Rectangle
 from lxml import etree
-from rich.markdown import TextElement
 
 # COLORS
 BACKGROUND_COLOR = "#dcdcdc"
@@ -73,7 +72,7 @@ class TreeNode:
         self.children.append(node)
 
 
-def create_text(x, y, content, font_size="12px") -> TextElement:
+def create_text(x, y, content, font_size="12px") -> inkex.TextElement:
     t = inkex.TextElement(
         x=str(x),
         y=str(y)
