@@ -35,6 +35,10 @@ RIT_BLACK  = "#000000"
 RIT_GRAY   = "#808080"
 RIT_WHITE  = "#FFFFFF"
 
+# === Text sizes ===
+TITLE_PX = "35px"
+SUBTITLE_PX = "20px"
+
 # === Diagram rules ===
 BOX_GRID = 20
 LINE_GRID = 5
@@ -54,8 +58,8 @@ ARROW_END = "Arrow1Mend"
 UNIT = BOX_GRID  # 20px
 
 OUTER_PADDING = UNIT            # 20px – page to main box
-BOX_PADDING = UNIT // 2         # 10px – inside a box
-TITLE_PADDING = UNIT // 2       # 10px – top text offset
+BOX_PADDING = UNIT              # 20px – inside a box
+TITLE_PADDING = UNIT            # 20px – top text offset
 SIBLING_GAP = UNIT // 2         # 10px – space between child boxes
 LEVEL_GAP = UNIT                # 20px – vertical separation (if used)
 
@@ -87,6 +91,11 @@ def create_text(x, y, content, font_size="12px") -> inkex.TextElement:
 def snap(value, grid):
     return round(value / grid) * grid
 
+def debug(node, indent=0):
+    print("  " * indent + node.name)
+    for c in node.children:
+        debug(c, indent + 1)
+
 
 class ParentBox(inkex.EffectExtension):
     def box_style(self, fill):
@@ -108,32 +117,41 @@ class ParentBox(inkex.EffectExtension):
     # ---Child
     # ------ChildofChild
     #, Where - is a space
-    def generate_tree(self, input, root_title) -> TreeNode:
+    def generate_tree(self, text, root_title) -> TreeNode:
         root = TreeNode(root_title)
-        stack = {0: root}
-        for raw_line in input.splitlines():
+        stack = [root]  # stack[level] = node at that depth
+
+        for raw_line in text.splitlines():
             if not raw_line.strip():
                 continue
+
+            # Count leading dashes
             dash_count = 0
-            for char in raw_line:
-                if char == '-':
+            for ch in raw_line:
+                if ch == '-':
                     dash_count += 1
                 else:
                     break
+
+            if dash_count % 3 != 0:
+                raise ValueError(f"Indentation must be multiples of 3 dashes:\n{raw_line}")
+
             depth = dash_count // 3
-            value = raw_line[dash_count:].strip()
-            node = TreeNode(value)
+            label = raw_line[dash_count:].strip()
 
-            # Attach node
-            parent = stack.get(depth)
-            if parent is None:
-                parent = stack[max(stack.keys())]  # fall back to last valid depth
+            node = TreeNode(label, depth=depth + 1)
 
+            if depth >= len(stack):
+                raise ValueError(f"Invalid indentation jump:\n{raw_line}")
+
+            parent = stack[depth]
             parent.add_child(node)
-            # Store for children
-            stack[depth + 1] = node
-        return root
 
+            # reset stack to current depth and append node
+            stack = stack[: depth + 1]
+            stack.append(node)
+
+        return root
 
     def create_box(self, x, y, width, height, fill = BACKGROUND_COLOR) -> Rectangle:
         rect = Rectangle(
@@ -148,17 +166,18 @@ class ParentBox(inkex.EffectExtension):
         return rect
 
 
-    def render_node(self, node, x, y, width, height, parent_group=None):
+    def render_node(self, node, x, y, width, height, parent_group=None, fill=RIT_WHITE, px="14px"):
         group = inkex.Group()
         if parent_group is None:
             self.svg.get_current_layer().add(group)
         else:
             parent_group.add(group)
-        rect = self.create_box(x, y, width, height, fill=BACKGROUND_COLOR)
+        rect = self.create_box(x, y, width, height, fill=fill,)
         title = create_text(
             x + width / 2,
             y + TITLE_PADDING,
-            node.name
+            node.name,
+            font_size=px
         )
         group.add(rect)
         group.add(title)
@@ -167,14 +186,32 @@ class ParentBox(inkex.EffectExtension):
             return
 
         n = len(node.children)
-        tot_inner_width = width - 2 * BOX_PADDING
-        cbox_width = (tot_inner_width - (n - 1) * SIBLING_GAP) / n
-        cbox_x = x + BOX_PADDING
+
+        inner_x = x + BOX_PADDING
+        inner_width = width - 2 * BOX_PADDING
+
+        # Snap inner area
+        inner_x = snap(inner_x, BOX_GRID)
+        inner_width = snap(inner_width, BOX_GRID)
+
+        # Compute child width snapped to grid
+        cbox_width = (inner_width - (n - 1) * SIBLING_GAP) / n
+        cbox_width = snap(cbox_width, BOX_GRID)
+
+        cbox_x = inner_x
         inner_y = y + TITLE_PADDING + BOX_PADDING
         ch = height - TITLE_PADDING - 2 * BOX_PADDING
 
         for child in node.children:
-            self.render_node(child, cbox_x, inner_y, cbox_width, ch, group)
+            if node.depth == 0:
+                new_fill = BACKGROUND_COLOR
+                fontsize = TITLE_PX
+            elif node.depth == 1:
+                new_fill = RIT_GRAY
+                fontsize = SUBTITLE_PX
+            else:
+                new_fill = LIGHT_GREEN
+            self.render_node(child, cbox_x, inner_y, cbox_width, ch, parent_group=group, fill=new_fill, px=fontsize)
             cbox_x += cbox_width + SIBLING_GAP
 
 
@@ -194,9 +231,15 @@ class ParentBox(inkex.EffectExtension):
         y = 0
 
         # Generate tree (Main box is not in tree and children = [] if empty)
-        tree_data = self.options.tree_data.strip("\n")
+        tree_data = self.options.tree_data
+
+        if "\\n" in tree_data:
+            tree_data = tree_data.encode().decode("unicode_escape")
+
         tree = self.generate_tree(tree_data, self.options.title)
-        self.render_node(tree, x, y, width, height)
+        debug(tree)
+
+        self.render_node(tree, x, y, width, height, fill=RIT_WHITE, px=TITLE_PX)
 
 if __name__ == '__main__':
     ParentBox().run()

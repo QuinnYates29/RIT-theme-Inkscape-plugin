@@ -7,19 +7,19 @@
   <default>Schematic</default>
 </param>
 
-<param name="box_height" type="string" gui-text="Default box height">
+<param name="height" type="string" gui-text="Box height">
   <default>200mm</default>
 </param>
 
-<param name="box_width" type="string" gui-text="Default box width">
+<param name="width" type="string" gui-text="Box width">
   <default>200mm</default>
 </param>
 
 <param
   name="tree_data"
-  type="text"
+  type="string"
   gui-text="Diagram structure"
-  multiline="true"
+  appearance="multiline"
   gui-description="Use --- for each indent level"
 />
 
