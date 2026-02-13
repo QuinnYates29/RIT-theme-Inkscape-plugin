@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+  <name>Generate Box Tree</name>
+  <id>org.inkscape.square.effect</id>
+
+  <param name="title" type="string" gui-text="Main title (top of diagram)">
+  <default>Schematic</default>
+</param>
+
+<param name="height" type="string" gui-text="Box height">
+  <default>200mm</default>
+</param>
+
+<param name="width" type="string" gui-text="Box width">
+  <default>200mm</default>
+</param>
+
+<param
+  name="tree_data"
+  type="string"
+  gui-text="Diagram structure"
+  appearance="multiline"
+  gui-description="Use --- for each indent level"
+/>
+
+
+  <!--
+  <param name="param_str" type="string" gui-text="Your name:"></param>
+  <param name="tab" type="notebook">
+    <page name="Options" gui-text="Personal Info">
+      <param name="color_param" gui-text="Nail Color" type="color">-1</param>
+      <param name="int_param" type="int" appearance="full" min="0" max="100" indent="0" gui-text="Age">0</param>
+      <param name="float_param" type="float" min="1" max="1000" gui-text="Height (meters):">1.5</param>
+      <param name="option_param" type="optiongroup" appearance="radio" gui-text="I like:">
+        <option value="choc">Chocolate</option>
+        <option value="shoe">Shoes</option>
+        <option value="oper">Opera</option>
+      </param>
+    </page>
+    <page name="Help" gui-text="Help">
+      <label xml:space="preserve">
+This template provides extension writers with a basis to write their python based Inkscape extensions quickly and properly.
+
+This testing help text can be changed to help users of the extension.
+      </label>
+     </page>
+
+   </param>
+   <param name="bool_param" type="bool" gui-text="God powers?">true</param>
+   -->
+  <effect>
+    <!--object-type>path</object-type-->
+    <effects-menu>
+      <submenu name="Render"/>
+    </effects-menu>
+  </effect>
+  <script>
+    <command reldir="extensions" interpreter="python">parent_box_generator.py</command>
+  </script>
+</inkscape-extension>
