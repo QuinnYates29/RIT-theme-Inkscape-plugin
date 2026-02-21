@@ -199,9 +199,11 @@ class ParentBox(inkex.EffectExtension):
         else:
             parent_group.add(group)
         rect = self.create_box(x, y, width, height, fill=fill,)
-        title = create_text(
+        title = create_wrapped_text(
             x + width / 2,
             y + TITLE_PADDING,
+            width,
+            height,
             node.name,
             font_size=px
         )
