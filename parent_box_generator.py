@@ -92,7 +92,10 @@ def create_wrapped_text(x, y, width, height, content, font_size="14px"):
     flow = inkex.FlowRoot()
     flow.style = {
         "font-size": font_size,
-        "text-anchor": "start",
+        "text-align": "center",
+        "white-space": "normal",
+        "word-break": "normal",
+        #"overflow-wrap": "break-word",  # optional fallback
     }
 
     # Define wrapping region
@@ -200,10 +203,10 @@ class ParentBox(inkex.EffectExtension):
             parent_group.add(group)
         rect = self.create_box(x, y, width, height, fill=fill,)
         title = create_wrapped_text(
-            x + width / 2,
-            y + TITLE_PADDING,
-            width,
-            height,
+            x + BOX_PADDING,  # LEFT edge of inner box
+            y + BOX_PADDING,  # TOP padding
+            width - 2 * BOX_PADDING,  # inner width
+            100,  # inner height
             node.name,
             font_size=px
         )
@@ -239,6 +242,10 @@ class ParentBox(inkex.EffectExtension):
                 fontsize = SUBTITLE_PX
             else:
                 new_fill = LIGHT_GREEN
+
+            # TODO remove debug
+            print("Child width:", cbox_width)
+            print("Child height:", ch)
             self.render_node(child, cbox_x, inner_y, cbox_width, ch, parent_group=group, fill=new_fill, px=fontsize)
             cbox_x += cbox_width + SIBLING_GAP
 
