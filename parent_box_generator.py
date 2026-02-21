@@ -87,6 +87,32 @@ def create_text(x, y, content, font_size="12px") -> inkex.TextElement:
     t.text = content
     return t
 
+#Helper to create wrapped text
+def create_wrapped_text(x, y, width, height, content, font_size="14px"):
+    flow = inkex.FlowRoot()
+    flow.style = {
+        "font-size": font_size,
+        "text-anchor": "start",
+    }
+
+    # Define wrapping region
+    region = inkex.FlowRegion()
+    rect = Rectangle(
+        x=str(x),
+        y=str(y),
+        width=str(width),
+        height=str(height)
+    )
+    region.add(rect)
+    flow.add(region)
+
+    # Add paragraph
+    para = inkex.FlowPara()
+    para.text = content
+    flow.add(para)
+
+    return flow
+
 # Helper to enforce snapping
 def snap(value, grid):
     return round(value / grid) * grid
