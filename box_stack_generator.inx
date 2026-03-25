@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+  <name>Generate Box Stack</name>
+  <id>org.inkscape.square.effect</id>
+
+  <param name="title" type="string" gui-text="Main title (top of stack in blue)">
+  <default>Schematic</default>
+</param>
+
+<param name="height" type="string" gui-text="Box height">
+  <default>200mm</default>
+</param>
+
+<param name="width" type="string" gui-text="Box width">
+  <default>200mm</default>
+</param>
+
+<param
+  name="stack_data"
+  type="string"
+  gui-text="Stack Contents"
+  appearance="multiline"
+  gui-description="Use a newline for each new box in the stack, not including title"
+/>
+
+<effect>
+    <!--object-type>path</object-type-->
+    <effects-menu>
+      <submenu name="Render"/>
+    </effects-menu>
+  </effect>
+  <script>
+    <command reldir="extensions" interpreter="python">box_stack_generator.py</command>
+  </script>
+</inkscape-extension>
