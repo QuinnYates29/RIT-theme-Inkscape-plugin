@@ -373,10 +373,8 @@ class ParentBox(inkex.EffectExtension):
 
         # Width and height of the entire "page"
         svg = self.svg
-
         width = self.options.width or svg.get('width')
         height = self.options.height or svg.get('height')
-
         width = svg.unittouu(width)
         height = svg.unittouu(height)
 
