@@ -1,5 +1,4 @@
 from enum import Enum
-
 import inkex
 
 # COLORS
@@ -9,9 +8,9 @@ DARK_BLUE = "#69a4d9"
 LIGHT_BLUE = "#cfe2f3"
 PURPLE = "#b665a8"
 RIT_ORANGE = "#F76902"
-RIT_BLACK  = "#000000"
-RIT_GRAY   = "#808080"
-RIT_WHITE  = "#FFFFFF"
+RIT_BLACK = "#000000"
+RIT_GRAY = "#808080"
+RIT_WHITE = "#FFFFFF"
 
 # === Text sizes ===
 TITLE_PX = "35px"
@@ -21,43 +20,32 @@ SUBTITLE_PX = "20px"
 BOX_GRID = 20
 LINE_GRID = 5
 
-# Enum representing box type in stack - allowing for adding future kinds of boxes in a stack
+
+# Enum representing box type in stack
 class BoxType(Enum):
     TITLE = 1
     BODY = 2
 
-# Doubly Linked list Node representing a single box in a stack
-class LinkedNode:
-    def __init__(self, name, box_type : BoxType, prev_node=None, next_node=None):
+# Simple class to hold box data
+class BoxData:
+    def __init__(self, name, box_type: BoxType):
         self.name = name
         self.type = box_type
-        self.next = next_node
-        self.prev = prev_node
 
-    def add_next(self, next_node):
-        self.next = next_node
-        self.next.prev = self
 
-# Linked list representing a stack of boxes of type LinkedNode
-class BoxStack:
-    def __init__(self, head : LinkedNode):
-        self.head = head
+# <--------- Helper Functions -------->#
 
-#<--------- Helper Functions -------->#
-
-#Returns the mimimum width for a flowroot element based on the length of the longest word
 def min_flow_width(text, font_size_px, width):
     if isinstance(font_size_px, str):
         font_size_px = float(font_size_px.replace("px", ""))
-    longest_word = max(text.split(), key=len)
+    words = text.split()
+    if not words: return width
+    longest_word = max(words, key=len)
     return max(len(longest_word) * font_size_px * 0.7, width)
 
-#Helper to create wrapped text
+
 def create_wrapped_text(x, y, width, height, content, font_size="14px"):
-    #print("FLOW:", x, y, width, height, content)
-
     flow = inkex.FlowRoot()
-
     flow.style = {
         "font-size": font_size,
         "fill": RIT_BLACK,
@@ -66,7 +54,6 @@ def create_wrapped_text(x, y, width, height, content, font_size="14px"):
     }
 
     region = inkex.FlowRegion()
-    #Ensure width is large enough to fit the text
     width = min_flow_width(content, font_size, width)
     rect = inkex.Rectangle(
         x=str(x),
@@ -79,50 +66,191 @@ def create_wrapped_text(x, y, width, height, content, font_size="14px"):
     flow.add(region)
 
     para = inkex.FlowPara()
-    para.style = {
-        "text-align": "center",
-    }
+    para.style = {"text-align": "center"}
     para.text = content
     flow.add(para)
 
     return flow
 
-# Helper to enforce snapping
+# Helper which calculates necessary height for wrapped text
+def compute_text_height(text, font_size_px, box_width):
+    if isinstance(font_size_px, str):
+        font_size_px = float(font_size_px.replace("px", ""))
+
+    # Account for some internal padding so text doesn't touch the 1px border
+    usable_width = box_width - 10
+    avg_char_width = font_size_px * 0.6
+    max_chars_per_line = max(1, usable_width / avg_char_width)
+
+    words = text.split()
+    if not words:
+        return 40  # Minimum box height
+
+    lines = 1
+    current_line_chars = 0
+
+    for w in words:
+        word_len = len(w)
+
+        # If this isn't the first word on the line, add 1 for the space
+        space = 1 if current_line_chars > 0 else 0
+
+        if current_line_chars + space + word_len > max_chars_per_line:
+            lines += 1
+            current_line_chars = word_len  # Start new line with this word
+        else:
+            current_line_chars += space + word_len
+
+    # Standard line height is usually 1.2 to 1.4 times font size
+    line_height = font_size_px * 1.3
+    raw_height = (lines * line_height) + 20  # Add vertical padding
+
+    # RULE: Snap to your 20px grid
+    return max(40, snap(raw_height, 20))
+
+# Helper that gets the offset for wrapped text to align vertically inside a box
+def get_text_v_offset(box_y, box_height, text, font_size_px, box_width):
+    """
+    Calculates the starting Y coordinate for a FlowRoot by finding the
+    difference between the box height and the actual text block height.
+    """
+    if isinstance(font_size_px, str):
+        font_size_px = float(font_size_px.replace("px", ""))
+
+    # Calculate lines to find the height of the "text block" itself
+    usable_width = box_width - 10
+    avg_char_width = font_size_px * 0.6
+    max_chars_per_line = max(1, usable_width / avg_char_width)
+
+    words = text.split()
+    lines = 1
+    current_line_chars = 0
+    for w in words:
+        word_len = len(w)
+        space = 1 if current_line_chars > 0 else 0
+        if current_line_chars + space + word_len > max_chars_per_line:
+            lines += 1
+            current_line_chars = word_len
+        else:
+            current_line_chars += space + word_len
+
+    # The actual height the text occupies
+    line_height = font_size_px * 1.3
+    text_block_height = lines * line_height
+
+    # Center the block within the box height
+    v_padding = (box_height - text_block_height) / 2
+
+    return box_y + v_padding
+
 def snap(value, grid):
     return round(value / grid) * grid
 
+
 def get_middle_xy(width, height):
+    return width / 2, height / 2
 
 
-#
+# === Extension Class ===
 class BoxStackGenerator(inkex.EffectExtension):
-    # Function containing parsing logic for input data, then generates
-    # list structure of boxes
-    def generate_stack(self, data, title) -> BoxStack:
-        # Generate stack
-        stack = BoxStack(LinkedNode(title, BoxType.TITLE))
 
-        # Parse data input and generate the rest of the stack
-        current = stack.head
+    def create_box(self, x, y, width, height, fill=LIGHT_GREEN) -> inkex.Rectangle:
+        snapped_x = snap(x, BOX_GRID)
+        snapped_y = snap(y, BOX_GRID)
+        snapped_w = snap(width, BOX_GRID)
+        snapped_h = snap(height, BOX_GRID)
+        rect = inkex.Rectangle(
+            x=str(snapped_x),
+            y=str(snapped_y),
+            width=str(snapped_w),
+            height=str(snapped_h),
+            rx=str(self.svg.unittouu("3mm")),
+            ry=str(self.svg.unittouu("3mm"))
+        )
+        # Assuming a simple style helper; added inline to ensure it runs
+        rect.style = {'fill': fill, 'stroke': RIT_BLACK, 'stroke-width': '1px'}
+        return rect
+
+    def generate_stack(self, data, title) -> list:
+        # Create a list and add first box
+        box_list = [BoxData(title, BoxType.TITLE)]
+
+        # Parse data input and append to the list
         for raw_line in data.splitlines():
-            if not raw_line.strip():
-                continue
-            current.add_next(LinkedNode(raw_line, BoxType.BODY))
-            current = current.next
-        return stack
+            line = raw_line.strip()
+            if line:
+                box_list.append(BoxData(line, BoxType.BODY))
+        return box_list
 
+    def draw_stack(self, stack, x, y, width, height, parent_group=None):
+        layer = self.svg.get_current_layer()
+        current_y = snap(y, BOX_GRID)
+        current_x = snap(x, BOX_GRID)
+        current_w = snap(width, BOX_GRID)
+        grid_height = snap(height, BOX_GRID)
+
+        stack_group = inkex.Group()
+        stack_group.set('inkscape:label', 'Stack: ' + stack[0].name)
+        if parent_group:
+            parent_group.add(stack_group)
+        else:
+            self.svg.get_current_layer().add(stack_group)
+
+        for box_item in stack:
+            fill_color = LIGHT_BLUE if box_item.type == BoxType.TITLE else LIGHT_GREEN
+            is_title = (box_item.type == BoxType.TITLE)
+            font_size_px = 20 if is_title else 14
+
+            needed_height = compute_text_height(box_item.name, font_size_px, width)
+            box_h = snap(needed_height, BOX_GRID)
+            centered_y = get_text_v_offset(current_y, box_h, box_item.name, font_size_px, current_w)
+
+            current_group = inkex.Group()
+            current_group.set('inkscape:label', 'Box: ' + box_item.name)
+            stack_group.add(current_group)
+
+            # Create box
+            rect = self.create_box(current_x, current_y, current_w, box_h, fill_color)
+            current_group.add(rect)
+
+            # Add text
+            text = create_wrapped_text(
+                current_x,
+                centered_y,
+                current_w,
+                box_h,
+                box_item.name,
+                font_size=f"{font_size_px}px"
+            )
+            current_group.add(text)
+            current_y += box_h
 
 
     def add_arguments(self, pars):
-        pars.add_argument("--title", type=str, help="Title of top box")
-        pars.add_argument("--height", type=str, help="Height of the box")
-        pars.add_argument("--width", type=str, help="Width of the box")
+        pars.add_argument("--title", type=str, default="Title")
+        pars.add_argument("--height", type=float, default=50.0)
+        pars.add_argument("--width", type=float, default=150.0)
         pars.add_argument("--stack_data", type=str, default="")
 
     def effect(self):
-        layer = self.svg.get_current_layer()
+        # Generate stack as a Python list
+        stack_data = self.options.stack_data
+        title = self.options.title
 
+        if "\\n" in stack_data:
+            stack_data = stack_data.encode().decode("unicode_escape")
+        box_list = self.generate_stack(stack_data, title)
 
+        # Get dimensions
+        # Note: Added fallback values in case SVG width/height are percent-based
+        width_int = self.svg.unittouu(self.svg.get('width', '500px'))
+        height_int = self.svg.unittouu(self.svg.get('height', '500px'))
+
+        # Center the stack horizontally, start near top
+        x = (width_int / 2) - (self.options.width / 2)
+        y = 50
+
+        self.draw_stack(box_list, x, y, self.options.width, self.options.height)
 
 
 if __name__ == '__main__':
