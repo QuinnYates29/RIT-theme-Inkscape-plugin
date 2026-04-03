@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
   <name>Generate Box Stack</name>
+  <image>theme_legend.png</image>
   <id>org.rit.schematic.stack</id>
 
   <param name="title" type="string" gui-text="Main title (top of stack in blue)">

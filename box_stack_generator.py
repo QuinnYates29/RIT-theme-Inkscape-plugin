@@ -1,24 +1,6 @@
 from enum import Enum
 import inkex
-
-# COLORS
-BACKGROUND_COLOR = "#dcdcdc"
-LIGHT_GREEN = "#b6d7a8"
-DARK_BLUE = "#69a4d9"
-LIGHT_BLUE = "#cfe2f3"
-PURPLE = "#b665a8"
-RIT_ORANGE = "#F76902"
-RIT_BLACK = "#000000"
-RIT_GRAY = "#808080"
-RIT_WHITE = "#FFFFFF"
-
-# === Text sizes ===
-TITLE_PX = "35px"
-SUBTITLE_PX = "20px"
-
-# === Diagram rules ===
-BOX_GRID = 20
-LINE_GRID = 5
+from themes import *
 
 
 # Enum representing box type in stack
@@ -183,24 +165,29 @@ class BoxStackGenerator(inkex.EffectExtension):
         return box_list
 
     def draw_stack(self, stack, x, y, width, height, parent_group=None):
-        layer = self.svg.get_current_layer()
         current_y = snap(y, BOX_GRID)
         current_x = snap(x, BOX_GRID)
         current_w = snap(width, BOX_GRID)
-        grid_height = snap(height, BOX_GRID)
 
         stack_group = inkex.Group()
         stack_group.set('inkscape:label', 'Stack: ' + stack[0].name)
+
         if parent_group:
             parent_group.add(stack_group)
         else:
             self.svg.get_current_layer().add(stack_group)
 
         for box_item in stack:
-            fill_color = LIGHT_BLUE if box_item.type == BoxType.TITLE else LIGHT_GREEN
-            is_title = (box_item.type == BoxType.TITLE)
-            font_size_px = 20 if is_title else 14
+            # 1. DEFINE THEME VALUES FIRST
+            if box_item.type == BoxType.TITLE:
+                fill_color = DARK_BLUE
+                font_size_str = SUB_GROUP_PX  # From themes.py (e.g., "16px")
+            else:
+                fill_color = LIGHT_GREEN
+                font_size_str = BOX_TEXT_PX  # From themes.py (e.g., "14px")
+            font_size_px = float(font_size_str.replace("px", ""))
 
+            # CALCULATE GEOMETRY
             needed_height = compute_text_height(box_item.name, font_size_px, width)
             box_h = snap(needed_height, BOX_GRID)
             centered_y = get_text_v_offset(current_y, box_h, box_item.name, font_size_px, current_w)
@@ -209,19 +196,21 @@ class BoxStackGenerator(inkex.EffectExtension):
             current_group.set('inkscape:label', 'Box: ' + box_item.name)
             stack_group.add(current_group)
 
-            # Create box
             rect = self.create_box(current_x, current_y, current_w, box_h, fill_color)
+            rect.style = get_style(fill_color)
             current_group.add(rect)
 
-            # Add text
             text = create_wrapped_text(
                 current_x,
                 centered_y,
                 current_w,
                 box_h,
                 box_item.name,
-                font_size=f"{font_size_px}px"
+                font_size=font_size_str
             )
+            # Optional: Override text style using helper
+            text.style.update(get_text_style(font_size=font_size_str))
+
             current_group.add(text)
             current_y += box_h
 

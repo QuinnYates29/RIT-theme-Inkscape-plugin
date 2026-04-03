@@ -24,36 +24,12 @@ It is intended for the main "structure" of a schematic.
 
 import inkex
 from inkex import Rectangle
-
-# COLORS
-BACKGROUND_COLOR = "#dcdcdc"
-LIGHT_GREEN = "#b6d7a8"
-DARK_BLUE = "#69a4d9"
-LIGHT_BLUE = "#cfe2f3"
-PURPLE = "#b665a8"
-RIT_ORANGE = "#F76902"
-RIT_BLACK  = "#000000"
-RIT_GRAY   = "#808080"
-RIT_WHITE  = "#FFFFFF"
-
-# === Text sizes ===
-TITLE_PX = "35px"
-SUBTITLE_PX = "20px"
-
-# === Diagram rules ===
-BOX_GRID = 20
-LINE_GRID = 5
+from themes import *
 
 BOX_EDGE_MARGIN = 20
 LINE_EDGE_MARGIN = 10
 
 STROKE_WIDTH = "1px"
-
-ARROW_PULLBACK = 2
-MIN_ARROW_SEGMENT = 18
-
-ARROW_START = "Arrow1Mstart"
-ARROW_END = "Arrow1Mend"
 
 # === Padding & spacing ===
 UNIT = BOX_GRID  # 20px
@@ -283,7 +259,7 @@ class ParentBox(inkex.EffectExtension):
 
         return root
 
-    def create_box(self, x, y, width, height, fill = BACKGROUND_COLOR) -> Rectangle:
+    def create_box(self, x, y, width, height, fill = GREY) -> Rectangle:
         rect = Rectangle(
             x=str(snap(x, BOX_GRID)),
             y=str(snap(y, BOX_GRID)),
@@ -295,20 +271,32 @@ class ParentBox(inkex.EffectExtension):
         rect.style = self.box_style(fill)
         return rect
 
-
-    def render_node(self, node, x, y, width, height, parent_group=None, fill=RIT_WHITE, px="14px"):
+    def render_node(self, node, x, y, width, height, parent_group=None, fill=WHITE, px="14px"):
         if width < MIN_WIDTH or height < MIN_HEIGHT:
             return
-        
+
+        if node.depth == 0:
+            current_fill = WHITE
+            current_px = PRIMARY_TITLE_PX
+        elif node.depth == 1:
+            current_fill = GREY
+            current_px = GROUP_HEADER_PX
+        else:
+            current_fill = RIT_GRAY
+            current_px = BOX_TEXT_PX
+
         group = inkex.Group()
         if parent_group is None:
             self.svg.get_current_layer().add(group)
         else:
             parent_group.add(group)
-        rect = self.create_box(x, y, width, height, fill=fill,)
+
+        # Use the determined fill
+        rect = self.create_box(x, y, width, height, fill=current_fill)
+        group.add(rect)
 
         title_width = width - 2 * BOX_PADDING
-        title_height = compute_title_height(node.name, px, title_width)
+        title_height = compute_title_height(node.name, current_px, title_width)
 
         title = create_wrapped_text(
             x + (width - title_width) / 2,
@@ -316,55 +304,32 @@ class ParentBox(inkex.EffectExtension):
             title_width,
             title_height,
             node.name,
-            font_size=px
+            font_size=current_px
         )
-        group.add(rect)
         group.add(title)
 
         if not node.children:
             return
 
-        n = len(node.children)
+        # --- Child Layout Logic ---
+        inner_x = snap(x + BOX_PADDING, BOX_GRID)
+        inner_width = snap(width - 2 * BOX_PADDING, BOX_GRID)
 
-        inner_x = x + BOX_PADDING
-        inner_width = width - 2 * BOX_PADDING
+        widths, spacing, offset = compute_child_layout(node.children, inner_width, current_px)
 
-        # Snap inner area
-        inner_x = snap(inner_x, BOX_GRID)
-        inner_width = snap(inner_width, BOX_GRID)
-
-        #Use compute_child_layout helper to define each child width, spacing, and offset
-        widths, spacing, offset = compute_child_layout(
-            node.children,
-            inner_width,
-            px
-        )
         cbox_x = inner_x + offset
-
         child_y = y + title_height + BOX_PADDING
-        available_height = height - title_height - 2 * BOX_PADDING
-        ch = available_height
+        ch = height - title_height - 2 * BOX_PADDING
 
         for child, cw in zip(node.children, widths):
-            if node.depth == 0:
-                new_fill = BACKGROUND_COLOR
-                fontsize = TITLE_PX
-            elif node.depth == 1:
-                new_fill = RIT_GRAY
-                fontsize = SUBTITLE_PX
-            else:
-                new_fill = LIGHT_GREEN
-                fontsize = px
-
             self.render_node(
                 child,
                 snap(cbox_x, BOX_GRID),
                 child_y,
                 cw,
                 ch,
-                parent_group=group,
-                fill=new_fill,
-                px=fontsize)
+                parent_group=group
+            )
             cbox_x += cw + spacing
 
 
@@ -390,7 +355,7 @@ class ParentBox(inkex.EffectExtension):
         tree = self.generate_tree(tree_data, self.options.title)
         debug(tree)
 
-        self.render_node(tree, x, y, width, height, fill=RIT_WHITE, px=TITLE_PX)
+        self.render_node(tree, x, y, width, height, fill=WHITE, px=PRIMARY_TITLE_PX)
 
 if __name__ == '__main__':
     ParentBox().run()
