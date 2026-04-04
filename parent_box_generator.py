@@ -25,6 +25,7 @@ It is intended for the main "structure" of a schematic.
 import inkex
 from inkex import Rectangle
 from themes import *
+from schematic_utils import *
 
 BOX_EDGE_MARGIN = 20
 LINE_EDGE_MARGIN = 10
@@ -52,20 +53,6 @@ class TreeNode:
     def add_child(self, node):
         self.children.append(node)
 
-
-def create_text(x, y, content, font_size="12px") -> inkex.TextElement:
-    t = inkex.TextElement(
-        x=str(x),
-        y=str(y)
-    )
-    t.style = {
-        "font-size": font_size,
-        "text-anchor": "middle",
-        "dominant-baseline": "middle"
-    }
-    t.text = content
-    return t
-
 #Safely returns the weight of parameter node
 # Returns 1 if error occurs
 def get_weight(node):
@@ -73,13 +60,6 @@ def get_weight(node):
         return float(node.meta.get("weight", 1.0))
     except (TypeError, ValueError):
         return 1.0
-
-# Returns the mimimum width for a flowroot element based on the length of the longest word
-def min_flow_width(text, font_size_px, width):
-    if isinstance(font_size_px, str):
-        font_size_px = float(font_size_px.replace("px", ""))
-    longest_word = max(text.split(), key=len)
-    return max(len(longest_word) * font_size_px * 0.7, width)
 
 def compute_title_height(text, font_size_px, box_width):
     if isinstance(font_size_px, str):
@@ -104,7 +84,6 @@ def compute_title_height(text, font_size_px, box_width):
     return lines * line_height + 5
 
 def compute_child_layout(children, inner_width, font_px):
-
     n = len(children)
     if n == 0:
         return [], 0, 0
@@ -158,44 +137,7 @@ def compute_child_layout(children, inner_width, font_px):
 
     return widths, spacing, start_offset
 
-#Helper to create wrapped text
-def create_wrapped_text(x, y, width, height, content, font_size="14px"):
-    print("FLOW:", x, y, width, height, content)
 
-    flow = inkex.FlowRoot()
-
-    flow.style = {
-        "font-size": font_size,
-        "fill": RIT_BLACK,
-        "text-align": "center",
-        "text-anchor": "middle"
-    }
-
-    region = inkex.FlowRegion()
-    #Ensure width is large enough to fit the text
-    width = min_flow_width(content, font_size, width)
-    rect = Rectangle(
-        x=str(x),
-        y=str(y),
-        width=str(width),
-        height=str(height)
-    )
-
-    region.add(rect)
-    flow.add(region)
-
-    para = inkex.FlowPara()
-    para.style = {
-        "text-align": "center",
-    }
-    para.text = content
-    flow.add(para)
-
-    return flow
-
-# Helper to enforce snapping
-def snap(value, grid):
-    return round(value / grid) * grid
 
 def debug(node, indent=0):
     print("  " * indent + node.name)
