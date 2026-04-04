@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
   <name>Generate Box Tree</name>
-  <id>org.inkscape.square.effect</id>
+  <id>org.rit.schematic.tree</id>
 
   <param name="title" type="string" gui-text="Main title (top of diagram)">
   <default>Schematic</default>
@@ -22,6 +22,17 @@
   appearance="multiline"
   gui-description="Use --- for each indent level"
 />
+
+<effect>
+    <!--object-type>path</object-type-->
+    <effects-menu>
+      <submenu name="Render"/>
+    </effects-menu>
+  </effect>
+  <script>
+    <command reldir="extensions" interpreter="python">parent_box_generator.py</command>
+  </script>
+</inkscape-extension>
 
 
   <!--
@@ -48,13 +59,3 @@ This testing help text can be changed to help users of the extension.
    </param>
    <param name="bool_param" type="bool" gui-text="God powers?">true</param>
    -->
-  <effect>
-    <!--object-type>path</object-type-->
-    <effects-menu>
-      <submenu name="Render"/>
-    </effects-menu>
-  </effect>
-  <script>
-    <command reldir="extensions" interpreter="python">parent_box_generator.py</command>
-  </script>
-</inkscape-extension>

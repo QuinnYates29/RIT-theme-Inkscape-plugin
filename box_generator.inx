@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+  <name>Generate Box</name>
+  <image>theme_legend.png</image>
+  <id>org.rit.schematic.box</id>
+
+ <param name="title" type="string" gui-text="Text inside the box">
+  <default>Box</default>
+</param>
+
+<param name="height" type="string" gui-text="Box height">
+  <default>200mm</default>
+</param>
+
+<param name="width" type="string" gui-text="Box width">
+  <default>200mm</default>
+</param>
+
+<param name="theme" type="optiongroup" appearance="combo" gui-text="Box Theme (Refer to Diagram):">
+    <option value="purp_blk">Purple (Black Outline)</option>
+    <option value="purp_wht">Purple (White Outline)</option>
+    <option value="grn_blk">Green (Black Outline)</option>
+    <option value="grn_wht">Green (White Outline)</option>
+    <option value="blu_blk">Blue (Black Outline)</option>
+    <option value="blu_wht">Blue (White Outline)</option>
+    <option value="dk_blu_blk">Dark Blue (Black Outline)</option>
+    <option value="dk_blu_wht">Dark Blue (White Outline)</option>
+</param>
+
+<effect>
+    <!--object-type>path</object-type-->
+    <effects-menu>
+      <submenu name="Render"/>
+    </effects-menu>
+  </effect>
+  <script>
+    <command reldir="extensions" interpreter="python">box_generator.py</command>
+  </script>
+</inkscape-extension>
