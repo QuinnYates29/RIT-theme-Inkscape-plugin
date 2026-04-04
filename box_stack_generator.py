@@ -66,7 +66,7 @@ class BoxStackGenerator(inkex.EffectExtension):
             current_group.set('inkscape:label', 'Box: ' + box_item.name)
             stack_group.add(current_group)
 
-            rect = self.create_box(current_x, current_y, current_w, box_h, fill_color)
+            rect = create_box(self, current_x, current_y, current_w, box_h, fill=fill_color)
             rect.style = get_style(fill_color)
             current_group.add(rect)
 

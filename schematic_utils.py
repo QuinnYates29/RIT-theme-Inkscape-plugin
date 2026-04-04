@@ -95,7 +95,7 @@ def get_text_v_offset(box_y, box_height, text, font_size_px, box_width):
     text_block_height = lines * (font_size_px * 1.3)
     return box_y + (box_height - text_block_height) / 2
 
-def create_box(self, x, y, width, height, fill=LIGHT_GREEN, border=RIT_BLACK) -> inkex.Rectangle:
+def create_box(svg, x, y, width, height, fill=LIGHT_GREEN, border=RIT_BLACK) -> inkex.Rectangle:
     snapped_x = snap(x, BOX_GRID)
     snapped_y = snap(y, BOX_GRID)
     snapped_w = snap(width, BOX_GRID)
@@ -105,8 +105,8 @@ def create_box(self, x, y, width, height, fill=LIGHT_GREEN, border=RIT_BLACK) ->
         y=str(snapped_y),
         width=str(snapped_w),
         height=str(snapped_h),
-        rx=str(self.svg.unittouu("3mm")),
-        ry=str(self.svg.unittouu("3mm"))
+        rx=str(svg.unittouu("3mm")),
+        ry=str(svg.unittouu("3mm"))
     )
     # Assuming a simple style helper; added inline to ensure it runs
     rect.style = get_style(fill, border)

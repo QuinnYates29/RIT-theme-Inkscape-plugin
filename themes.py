@@ -56,15 +56,12 @@ def get_text_style(font_size=BOX_TEXT_PX, color=RIT_BLACK, weight="normal"):
 
 # Pre-defined Theme Styles based on the Diagram
 THEMES = {
-    "CONTAINER": get_style(GREY),
-    "LOGIC":     get_style(LIGHT_GREEN),
-    "HEADER":    get_style(DARK_BLUE),
-    "SENSOR":    get_style(LIGHT_BLUE),
-    "STATE":     get_style(PURPLE),
-    "ARROW":     {
-        "fill": "none",
-        "stroke": RIT_BLACK,
-        "stroke-width": STROKE_WIDTH,
-        "marker-end": f"url(#{ARROW_END})"
-    }
+    "purp_blk": {"fill": "#b665a8", "stroke": "#000000"},
+    "purp_wht": {"fill": "#b665a8", "stroke": "#FFFFFF"},
+    "grn_blk":  {"fill": "#b6d7a8", "stroke": "#000000"},
+    "grn_wht":  {"fill": "#b6d7a8", "stroke": "#FFFFFF"},
+    "dk_blu_blk": {"fill": "#69a4d9", "stroke": "#000000"},
+    "dk_blu_wht": {"fill": "#69a4d9", "stroke": "#FFFFFF"},
+    "blu_blk": {"fill": "#cfe2f3", "stroke": "#000000"},
+    "blu_wht": {"fill": "#cfe2f3", "stroke": "#FFFFFF"},
 }
