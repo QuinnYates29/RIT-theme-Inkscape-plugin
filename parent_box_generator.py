@@ -196,17 +196,6 @@ class ParentBox(inkex.EffectExtension):
 
         return root
 
-    # def create_box(self, x, y, width, height, fill = GREY) -> Rectangle:
-    #     rect = Rectangle(
-    #         x=str(snap(x, BOX_GRID)),
-    #         y=str(snap(y, BOX_GRID)),
-    #         width=str(snap(width, BOX_GRID)),
-    #         height=str(snap(height, BOX_GRID)),
-    #         rx=str(self.svg.unittouu("3mm")),
-    #         ry=str(self.svg.unittouu("3mm"))
-    #     )
-    #     rect.style = self.box_style(fill)
-    #     return rect
 
     def render_node(self, node, x, y, width, height, parent_group=None, fill=WHITE, px="14px"):
         if width < MIN_WIDTH or height < MIN_HEIGHT:

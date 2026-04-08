@@ -3,6 +3,11 @@
     <name>Formula: Smart Connector</name>
     <id>org.rit.formula.draw_connector</id>
 
+    <param name="line_type" type="optiongroup" appearance="combo" gui-text="Line Style:">
+        <option value="orthogonal">Orthogonal</option>
+        <option value="straight">Straight</option>
+    </param>
+
     <param name="start_side" type="optiongroup" appearance="combo" gui-text="Exit From (Source):">
         <option value="auto">Auto</option>
         <option value="top">Top</option>
