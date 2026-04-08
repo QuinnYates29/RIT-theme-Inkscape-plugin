@@ -36,9 +36,9 @@ STROKE_WIDTH = "1px"
 UNIT = BOX_GRID  # 20px
 
 OUTER_PADDING = UNIT            # 20px – page to main box
-BOX_PADDING = UNIT              # 20px – inside a box
+BOX_PADDING = UNIT              # 40px – inside a box
 TITLE_PADDING = UNIT            # 20px – top text offset
-SIBLING_GAP = UNIT              # 20px – space between child boxes
+SIBLING_GAP = UNIT              # 40px – space between child boxes
 LEVEL_GAP = UNIT                # 20px – vertical separation (if used)
 MIN_WIDTH = 80
 MIN_HEIGHT = 60
@@ -92,19 +92,26 @@ def compute_child_layout(children, inner_width, font_px):
     if isinstance(font_px, str):
         font_px = float(font_px.replace("px", ""))
 
-    # 1. Determine Minimum Widths (snapped)
+    # 1. Standardize all spacing to 40px (2 units)
+    # This ensures sibling gaps match the container edge gaps
+    gap = snap(SIBLING_GAP, BOX_GRID)
+
+    # 2. Total space taken by gaps between siblings
+    total_sibling_gap_width = gap * (n - 1) if n > 1 else 0
+
+    # 3. Reserve 40px for the LEFT edge and 40px for the RIGHT edge
+    # Subtracting 2 * gap ensures the boxes don't touch the container walls
+    available_box_space = inner_width - (2 * gap) - total_sibling_gap_width
+
+    # 4. Determine Minimum Widths
     min_widths = []
     for child in children:
-        text_min = min_flow_width(child.name, font_px, MIN_WIDTH) + (2 * BOX_PADDING)
+        text_min = min_flow_width(child.name, font_px, MIN_WIDTH) + (2 * UNIT)
         min_widths.append(snap(text_min, BOX_GRID))
 
-    # 2. Use Fixed Snapped Gaps
-    fixed_gap = snap(SIBLING_GAP, BOX_GRID)
-    total_gap_width = fixed_gap * (n - 1) if n > 1 else 0
-    available_box_space = inner_width - total_gap_width
-
-    # 3. Weighted Distribution to fill the "Big Gaps"
     total_min = sum(min_widths)
+
+    # 5. Distribution Logic (Expand to fill, but respect the 40px margins)
     if total_min > available_box_space:
         scale = available_box_space / total_min
         widths = [snap(w * scale, BOX_GRID) for w in min_widths]
@@ -118,11 +125,12 @@ def compute_child_layout(children, inner_width, font_px):
             extra = (w / total_weight) * extra_space
             widths.append(snap(min_widths[i] + extra, BOX_GRID))
 
-    # 4. Final Snapped Centering
-    total_layout_width = sum(widths) + total_gap_width
-    start_offset = snap((inner_width - total_layout_width) / 2, BOX_GRID)
+    # 6. Final Centering
+    # start_offset begins at exactly 'gap' (40px) to create the left margin
+    actual_content_width = sum(widths) + total_sibling_gap_width
+    start_offset = gap + snap((available_box_space - sum(widths)) / 2, BOX_GRID)
 
-    return widths, fixed_gap, start_offset
+    return widths, gap, start_offset
 
 
 
