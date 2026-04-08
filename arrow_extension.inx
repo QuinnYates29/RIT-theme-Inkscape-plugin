@@ -2,6 +2,23 @@
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
     <name>Formula: Smart Connector</name>
     <id>org.rit.formula.draw_connector</id>
+
+    <param name="start_side" type="optiongroup" appearance="combo" gui-text="Exit From (Source):">
+        <option value="auto">Auto</option>
+        <option value="top">Top</option>
+        <option value="bottom">Bottom</option>
+        <option value="left">Left</option>
+        <option value="right">Right</option>
+    </param>
+
+    <param name="end_side" type="optiongroup" appearance="combo" gui-text="Enter To (Target):">
+        <option value="auto">Auto</option>
+        <option value="top">Top</option>
+        <option value="bottom">Bottom</option>
+        <option value="left">Left</option>
+        <option value="right">Right</option>
+    </param>
+
     <effect>
         <object-type>all</object-type>
         <effects-menu>
@@ -9,6 +26,6 @@
         </effects-menu>
     </effect>
     <script>
-        <command location="inx" interpreter="python">draw_connector.py</command>
+        <command location="inx" interpreter="python">arrow_extension.py</command>
     </script>
 </inkscape-extension>
