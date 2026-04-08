@@ -38,7 +38,7 @@ UNIT = BOX_GRID  # 20px
 OUTER_PADDING = UNIT            # 20px – page to main box
 BOX_PADDING = UNIT              # 20px – inside a box
 TITLE_PADDING = UNIT            # 20px – top text offset
-SIBLING_GAP = UNIT // 2         # 10px – space between child boxes
+SIBLING_GAP = UNIT              # 20px – space between child boxes
 LEVEL_GAP = UNIT                # 20px – vertical separation (if used)
 MIN_WIDTH = 80
 MIN_HEIGHT = 60
@@ -83,6 +83,7 @@ def compute_title_height(text, font_size_px, box_width):
     line_height = font_size_px * 1.2
     return lines * line_height + 5
 
+
 def compute_child_layout(children, inner_width, font_px):
     n = len(children)
     if n == 0:
@@ -90,52 +91,38 @@ def compute_child_layout(children, inner_width, font_px):
 
     if isinstance(font_px, str):
         font_px = float(font_px.replace("px", ""))
-    # --- Step 1: Minimum widths (text safety) ---
+
+    # 1. Determine Minimum Widths (snapped)
     min_widths = []
     for child in children:
-        longest_word = max(child.name.split(), key=len)
-        text_min = len(longest_word) * font_px * 0.6 + 2 * BOX_PADDING
-        min_widths.append(max(text_min, MIN_WIDTH))
+        text_min = min_flow_width(child.name, font_px, MIN_WIDTH) + (2 * BOX_PADDING)
+        min_widths.append(snap(text_min, BOX_GRID))
 
+    # 2. Use Fixed Snapped Gaps
+    fixed_gap = snap(SIBLING_GAP, BOX_GRID)
+    total_gap_width = fixed_gap * (n - 1) if n > 1 else 0
+    available_box_space = inner_width - total_gap_width
+
+    # 3. Weighted Distribution to fill the "Big Gaps"
     total_min = sum(min_widths)
-    # --- Step 2: Reserve spacing region (15%) ---
-    spacing_ratio = 0.15
-    total_spacing_width = inner_width * spacing_ratio
-
-    if n > 1:
-        spacing = total_spacing_width / (n - 1)
-        spacing = snap(spacing, BOX_GRID)
+    if total_min > available_box_space:
+        scale = available_box_space / total_min
+        widths = [snap(w * scale, BOX_GRID) for w in min_widths]
     else:
-        spacing = 0
-
-    box_region_width = inner_width - total_spacing_width
-    # --- Step 3: If minimums exceed box region, scale them down ---
-    if total_min > box_region_width:
-        scale = box_region_width / total_min
-        widths = [w * scale for w in min_widths]
-    else:
-        # --- Step 4: Apply weights inside box region ---
         weights = [get_weight(c) for c in children]
         total_weight = sum(weights)
+        extra_space = available_box_space - total_min
 
-        widths = [
-            box_region_width * (w / total_weight)
-            for w in weights
-        ]
+        widths = []
+        for i, w in enumerate(weights):
+            extra = (w / total_weight) * extra_space
+            widths.append(snap(min_widths[i] + extra, BOX_GRID))
 
-        # Enforce minimums
-        widths = [
-            max(min_w, w)
-            for min_w, w in zip(min_widths, widths)
-        ]
-    widths = [snap(w, BOX_GRID) for w in widths]
-    # --- Step 5: Final centering ---
-    total_width = sum(widths)
-    total_layout = total_width + spacing * (n - 1)
+    # 4. Final Snapped Centering
+    total_layout_width = sum(widths) + total_gap_width
+    start_offset = snap((inner_width - total_layout_width) / 2, BOX_GRID)
 
-    start_offset = (inner_width - total_layout) / 2
-
-    return widths, spacing, start_offset
+    return widths, fixed_gap, start_offset
 
 
 
@@ -280,13 +267,8 @@ class ParentBox(inkex.EffectExtension):
 
         # Width and height of the entire "page"
         svg = self.svg
-        width = self.options.width or svg.get('width')
-        height = self.options.height or svg.get('height')
-        width = svg.unittouu(width)
-        height = svg.unittouu(height)
-
-        x = 0
-        y = 0
+        width = svg.unittouu(self.options.width or svg.get('width', '800px'))
+        height = svg.unittouu(self.options.height or svg.get('height', '600px'))
 
         # Generate tree (Main box is not in tree and children = [] if empty)
         tree_data = self.options.tree_data
@@ -297,7 +279,7 @@ class ParentBox(inkex.EffectExtension):
         tree = self.generate_tree(tree_data, self.options.title)
         debug(tree)
 
-        self.render_node(tree, x, y, width, height, fill=WHITE, px=PRIMARY_TITLE_PX)
+        self.render_node(tree, 0, 0, width, height, fill=WHITE, px=PRIMARY_TITLE_PX)
 
 if __name__ == '__main__':
     ParentBox().run()
