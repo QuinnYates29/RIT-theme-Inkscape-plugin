@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
-  <name>Generate Box</name>
+  <name>Formula: Single Block</name>
   <image>theme_legend.png</image>
   <id>org.rit.schematic.box</id>
 

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+    <name>Formula: Smart Connector</name>
+    <id>org.rit.formula.draw_connector</id>
+    <effect>
+        <object-type>all</object-type>
+        <effects-menu>
+            <submenu name="RIT Formula"/>
+        </effects-menu>
+    </effect>
+    <script>
+        <command location="inx" interpreter="python">draw_connector.py</command>
+    </script>
+</inkscape-extension>

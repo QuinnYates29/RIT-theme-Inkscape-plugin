@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
-  <name>Generate Box Stack</name>
+  <name>Formula: Component Stack</name>
 
   <id>org.rit.schematic.stack</id>
 

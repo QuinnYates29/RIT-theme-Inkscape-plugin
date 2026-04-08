@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
-  <name>Generate Box Tree</name>
+  <name>Formula: System Hierarchy</name>
   <id>org.rit.schematic.tree</id>
 
   <param name="title" type="string" gui-text="Main title (top of diagram)">
