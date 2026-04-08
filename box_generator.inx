@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
-  <name>Formula: Single Block</name>
+  <name>Generate Single Block</name>
   <image>theme_legend.png</image>
   <id>org.rit.schematic.box</id>
 
@@ -38,7 +38,7 @@
 <effect>
     <!--object-type>path</object-type-->
     <effects-menu>
-      <submenu name="Render"/>
+      <submenu name="RIT Formula"/>
     </effects-menu>
   </effect>
   <script>

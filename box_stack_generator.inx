@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
-  <name>Formula: Component Stack</name>
+  <name>Generate Component Stack</name>
 
   <id>org.rit.schematic.stack</id>
 
@@ -35,7 +35,7 @@
 <effect>
     <!--object-type>path</object-type-->
     <effects-menu>
-      <submenu name="Render"/>
+      <submenu name="RIT Formula"/>
     </effects-menu>
   </effect>
   <script>
