@@ -90,24 +90,27 @@ class BoxStackGenerator(inkex.EffectExtension):
         pars.add_argument("--height", type=float, default=50.0)
         pars.add_argument("--width", type=float, default=150.0)
         pars.add_argument("--stack_data", type=str, default="")
+        pars.add_argument("--x", type=int, default=-1)
+        pars.add_argument("--y", type=int, default=-1)
 
     def effect(self):
         # Generate stack as a Python list
         stack_data = self.options.stack_data
         title = self.options.title
+        x = self.options.x
+        y = self.options.y
 
         if "\\n" in stack_data:
             stack_data = stack_data.encode().decode("unicode_escape")
         box_list = self.generate_stack(stack_data, title)
 
-        # Get dimensions
-        # Note: Added fallback values in case SVG width/height are percent-based
         width_int = self.svg.unittouu(self.svg.get('width', '500px'))
         height_int = self.svg.unittouu(self.svg.get('height', '500px'))
 
-        # Center the stack horizontally, start near top
-        x = (width_int / 2) - (self.options.width / 2)
-        y = 50
+        if x == -1:
+            x = (width_int / 2) - (self.options.width / 2)
+        if y == -1:
+            y = 50
 
         self.draw_stack(box_list, x, y, self.options.width, self.options.height)
 

@@ -3,31 +3,15 @@ from themes import *
 from schematic_utils import *
 
 class BoxGenerator(inkex.EffectExtension):
-    def draw_box(self, title, width, height, fill_color, border_color):
-        p_width = self.svg.unittouu(self.svg.get("width"))
-        p_height = self.svg.unittouu(self.svg.get("height"))
+    def draw_box(self, title, x, y, width, height, fill_color, border_color):
         group = inkex.Group()
         group.set('inkscape:label', 'Box: ' + title)
 
-        box = create_box(
-            self,
-            p_width // 2,
-            p_height // 2,
-            width,
-            height,
-            fill_color,
-            border_color
-        )
+        box = create_box(self, x, y, width, height, fill_color, border_color)
         box.style = get_style(fill_color, border_color)
         group.add(box)
 
-        text = create_wrapped_text(
-            p_width // 2,
-            p_height // 2,
-            width,
-            height,
-            title
-        )
+        text = create_wrapped_text(x, y, width, height, title)
         text.style = get_text_style()
         group.add(text)
 
@@ -38,12 +22,24 @@ class BoxGenerator(inkex.EffectExtension):
         pars.add_argument("--height", type=float, default=50.0)
         pars.add_argument("--width", type=float, default=150.0)
         pars.add_argument("--theme", type=str, default="grn_blk", help="Box theme selection")
+        pars.add_argument("--x", type=int, default = -1)
+        pars.add_argument("--y", type=int, default = -1)
 
     def effect(self):
         title = self.options.title
         height = self.options.height
         width = self.options.width
         theme = self.options.theme
+
+        p_width = self.svg.unittouu(self.svg.get("width"))
+        p_height = self.svg.unittouu(self.svg.get("height"))
+        x = self.options.x
+        y = self.options.y
+
+        if x == -1:
+            x = p_width // 2
+        if y == -1:
+            y = p_height // 2
 
         match theme:
             case "grn_wht":
@@ -71,7 +67,7 @@ class BoxGenerator(inkex.EffectExtension):
                 fill_color = LIGHT_GREEN
                 border_color = RIT_BLACK
 
-        self.draw_box(title, width, height, fill_color, border_color)
+        self.draw_box(title, x, y, width, height, fill_color, border_color)
 
 if __name__ == "__main__":
     BoxGenerator().run()

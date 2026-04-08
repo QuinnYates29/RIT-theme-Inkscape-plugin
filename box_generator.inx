@@ -16,6 +16,14 @@
   <default>200mm</default>
 </param>
 
+<param name="x" type="string" gui-text="Box X location" gui-description="Leave blank for center of page">
+  <default>-1</default>
+</param>
+
+<param name="y" type="string" gui-text="Box Y location" gui-description="Leave blank for center of page">
+  <default>-1</default>
+</param>
+
 <param name="theme" type="optiongroup" appearance="combo" gui-text="Box Theme (Refer to Diagram):">
     <option value="purp_blk">Purple (Black Outline)</option>
     <option value="purp_wht">Purple (White Outline)</option>
