@@ -92,18 +92,18 @@ def compute_child_layout(children, inner_width, font_px):
     if isinstance(font_px, str):
         font_px = float(font_px.replace("px", ""))
 
-    # 1. Standardize all spacing to 40px (2 units)
+    # Standardize all spacing to 40px (2 units)
     # This ensures sibling gaps match the container edge gaps
     gap = snap(SIBLING_GAP, BOX_GRID)
 
-    # 2. Total space taken by gaps between siblings
+    # Total space taken by gaps between siblings
     total_sibling_gap_width = gap * (n - 1) if n > 1 else 0
 
-    # 3. Reserve 40px for the LEFT edge and 40px for the RIGHT edge
+    # Reserve 40px for the LEFT edge and 40px for the RIGHT edge
     # Subtracting 2 * gap ensures the boxes don't touch the container walls
     available_box_space = inner_width - (2 * gap) - total_sibling_gap_width
 
-    # 4. Determine Minimum Widths
+    # Determine Minimum Widths
     min_widths = []
     for child in children:
         text_min = min_flow_width(child.name, font_px, MIN_WIDTH) + (2 * UNIT)
@@ -111,7 +111,7 @@ def compute_child_layout(children, inner_width, font_px):
 
     total_min = sum(min_widths)
 
-    # 5. Distribution Logic (Expand to fill, but respect the 40px margins)
+    # Distribution Logic (Expand to fill, but respect the 40px margins)
     if total_min > available_box_space:
         scale = available_box_space / total_min
         widths = [snap(w * scale, BOX_GRID) for w in min_widths]
@@ -125,7 +125,7 @@ def compute_child_layout(children, inner_width, font_px):
             extra = (w / total_weight) * extra_space
             widths.append(snap(min_widths[i] + extra, BOX_GRID))
 
-    # 6. Final Centering
+    # Final Centering
     # start_offset begins at exactly 'gap' (40px) to create the left margin
     actual_content_width = sum(widths) + total_sibling_gap_width
     start_offset = gap + snap((available_box_space - sum(widths)) / 2, BOX_GRID)
