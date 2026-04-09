@@ -48,7 +48,7 @@ class BoxStackGenerator(inkex.EffectExtension):
             self.svg.get_current_layer().add(stack_group)
 
         for box_item in stack:
-            # 1. DEFINE THEME VALUES FIRST
+            # DEFINE THEME VALUES FIRST
             if box_item.type == BoxType.TITLE:
                 fill_color = DARK_BLUE
                 font_size_str = SUB_GROUP_PX  # From themes.py (e.g., "16px")
@@ -66,8 +66,7 @@ class BoxStackGenerator(inkex.EffectExtension):
             current_group.set('inkscape:label', 'Box: ' + box_item.name)
             stack_group.add(current_group)
 
-            rect = create_box(self, current_x, current_y, current_w, box_h, fill=fill_color)
-            rect.style = get_style(fill_color)
+            rect = create_box(self, current_x, current_y, current_w, box_h, fill=fill_color, border=RIT_BLACK)
             current_group.add(rect)
 
             text = create_wrapped_text(

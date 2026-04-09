@@ -7,7 +7,7 @@ class BoxGenerator(inkex.EffectExtension):
         group = inkex.Group()
         group.set('inkscape:label', 'Box: ' + title)
 
-        box = create_box(self, x, y, width, height, fill_color, border_color)
+        box = create_box(self, x, y, width, height, fill=fill_color, border=border_color)
         box.style = get_style(fill_color, border_color)
         group.add(box)
 
